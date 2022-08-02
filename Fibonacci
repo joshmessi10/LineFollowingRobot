@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <time.h> 
+int main(void){
+    clock_t begin = clock();
+	double time_spent = 0.0, time_lapse1 = 0.0, time_lapse2 = 0.0, time_lapse3 = 0.0;
+    int x=0, y=1, z=1, n=1, i=0;
+    int A [1000000];
+    A[0]= x; A[1] = y; A[2] = z;
+	printf("Digite el numero de la serie: ");
+    scanf("%d",&n);
+    while(i<n){
+        z=x+y;
+        A[i+2]=z;
+        x=y;
+        y=z;
+        i = i + 1;
+    }
+    printf("El resultado es: ");
+    printf("%d",z);
+    clock_t end1 = clock();
+	time_lapse1 += (double)(end1-begin) / CLOCKS_PER_SEC;
+    printf("\nTiempo: %f segundos", time_lapse1);
+    int rep = 1;
+    do{
+        printf("\nDigite otro numero de la serie: ");
+        scanf("%d",&n);
+        clock_t begin2 = clock();
+        if(A[n] == 0){
+           while(i<n){
+                z=x+y;
+                A[i+2]=z;
+                x=y;
+                y=z;
+                i = i + 1;
+            }
+            clock_t end2 = clock();
+            printf("El resultado es: ");
+            printf("%d",z); 
+    	    time_lapse2 += (double)(end2 - begin2) / CLOCKS_PER_SEC;
+            printf("\nTiempo: %f segundos", time_lapse2);
+        }
+        else if(A[n] != 0){
+            printf("El resultado es: ");
+            printf("%d",A[n]);
+            clock_t end3 = clock();
+    	    time_lapse3 += (double)(end3 - begin2) / CLOCKS_PER_SEC;
+            printf("\nTiempo: %f segundos", time_lapse3);
+            }
+        printf("\nPara repetir, pulse 1, cualquier otro numero para terminar: ");
+        scanf("%d",&rep); 
+	}while(rep==1);
+    clock_t end = clock();
+	time_spent += (double)(end-begin) / CLOCKS_PER_SEC;
+    printf("\nTiempo: %f segundos", time_spent);
+    return 0;
+}
