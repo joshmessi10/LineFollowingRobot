@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/time.h>
+
+
+struct timeval stop, start;
+unsigned long tiempo, valor=0;
+unsigned long clave = 0xF103C86;
+unsigned long tokenLocal = 0;
+unsigned long input = 0;
+
+void imprimeCuadrado();
+/* run this program using the console pauser or add your own getch, system("pause") or input loop */
+
+int main() {
+	int j=0;
+	printf("Pulse enter para sincronizar...");
+	getchar();
+	imprimeCuadrado();
+	gettimeofday(&start, NULL);
+	while(1){	
+		if(tiempo >= j){
+			while(tiempo < j+10){
+				tokenLocal = j^clave;
+				printf("Ingrese su TOKEN>>>");
+				scanf("%08X",&input);
+				gettimeofday(&stop, NULL);
+				tiempo = ((stop.tv_sec - start.tv_sec)* 1000000 + stop.tv_usec - start.tv_usec);
+				tiempo/=1000000.0;
+				valor = input ^ clave;
+				if(valor == j){
+					printf("Clave Aceptada\n");
+				} else{
+					printf("Clave Rechazada\n");	
+				}
+				printf("Tiempo %lu ms\n", tiempo);
+				printf("Tiempo %08X \n", tiempo);
+				printf("Clave %08X \n", clave);
+				printf("Token %08X \n", tokenLocal);
+				printf("Token %lu \n", tokenLocal);		
+			}
+		}
+		j += 10;  					
+	}	
+}
+
+void imprimeCuadrado(){
+	unsigned char dato = 219;
+	int i = 0;
+	for(i = 1; i < 289; i++){
+		printf("%c",dato);
+		if(0==(i%24)){
+			printf("\n");
+		}
+	}
+}
