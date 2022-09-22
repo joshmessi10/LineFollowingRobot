@@ -383,6 +383,7 @@ void CDC_Receive_Callback(uint8_t *buf, uint32_t len)
 		tiempo=atol(tiempoChar);
 	}
 	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_2);
+	CDC_Transmit_FS(respuesta,2);
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
