@@ -1,0 +1,244 @@
+#include <Windows.h>
+	#include <stdio.h>
+	#include <string.h>
+	#include <sys/time.h>
+	void main(void)
+	{
+		
+		HANDLE hComm;                          // Handle to the Serial port
+		char   ComPortName[] = "\\\\.\\COM6"; // Name of the Serial port(May Change) to be opened,
+		BOOL   Status;
+		DWORD dwEventMask;                     // Event mask to trigger
+			char  TempChar;                        // Temperory Character
+			char  SerialBuffer[256];               // Buffer Containing Rxed Data
+			DWORD NoBytesRead;                     // Bytes read by ReadFile()
+			int i = 0;
+			
+		printf("\n\n +==========================================+");
+		printf("\n |  Serial Transmission (Win32 API)         |");
+		printf("\n +==========================================+\n");
+		/*----------------------------------- Opening the Serial Port --------------------------------------------*/
+
+		hComm = CreateFile( ComPortName,                       // Name of the Port to be Opened
+							GENERIC_READ | GENERIC_WRITE,      // Read/Write Access
+							0,                                 // No Sharing, ports cant be shared
+							NULL,                              // No Security
+							OPEN_EXISTING,                     // Open existing port only
+							0,                                 // Non Overlapped I/O
+							NULL);                             // Null for Comm Devices
+
+		if (hComm == INVALID_HANDLE_VALUE)
+			printf("\n   Error! - Port %s can't be opened", ComPortName);
+		else 
+			printf("\n   Port %s Opened\n ", ComPortName);
+
+		
+		/*------------------------------- Setting the Parameters for the SerialPort ------------------------------*/
+
+		DCB dcbSerialParams = { 0 };                        // Initializing DCB structure
+		dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+		
+		Status = GetCommState(hComm, &dcbSerialParams);     //retreives  the current settings
+
+		if (Status == FALSE)
+			printf("\n   Error! in GetCommState()");
+
+		dcbSerialParams.BaudRate = CBR_9600;      // Setting BaudRate = 9600
+		dcbSerialParams.ByteSize = 8;             // Setting ByteSize = 8
+		dcbSerialParams.StopBits = ONESTOPBIT;    // Setting StopBits = 1
+		dcbSerialParams.Parity   = NOPARITY;      // Setting Parity = None 
+
+		Status = SetCommState(hComm, &dcbSerialParams);  //Configuring the port according to settings in DCB 
+
+		if (Status == FALSE)
+			{
+				printf("\n   Error! in Setting DCB Structure");
+			}
+		else
+			{
+				printf("\n   Setting DCB Structure Successfull\n");
+				printf("\n       Baudrate = %d", dcbSerialParams.BaudRate);
+				printf("\n       ByteSize = %d", dcbSerialParams.ByteSize);
+				printf("\n       StopBits = %d", dcbSerialParams.StopBits);
+				printf("\n       Parity   = %d", dcbSerialParams.Parity);
+			}
+		
+		/*------------------------------------ Setting Timeouts --------------------------------------------------*/
+		
+		COMMTIMEOUTS timeouts = { 0 };
+
+		timeouts.ReadIntervalTimeout         = 50;
+		timeouts.ReadTotalTimeoutConstant    = 50;
+		timeouts.ReadTotalTimeoutMultiplier  = 10;
+		timeouts.WriteTotalTimeoutConstant   = 50;
+		timeouts.WriteTotalTimeoutMultiplier = 10;
+
+		if (SetCommTimeouts(hComm, &timeouts) == FALSE)
+			printf("\n   Error! in Setting Time Outs");
+		else
+			printf("\n\n   Setting Serial Port Timeouts Successfull");
+		time_t k;
+		time(&k);
+		unsigned long int input = 0,numClave=0,valor=0,tiempo=0;
+		int opcion=0;
+		char in=0;
+		while(1){
+			
+		/*----------------------------- Writing a Character to Serial Port----------------------------------------*/
+		char clave[] = "0xF103C86";
+		numClave = (int)strtol(clave, NULL, 0);
+		printf("\nClaveP:%08X\n", numClave); 
+		time_t t;
+		time(&t);
+		 struct tm *local = localtime(&t);
+ 
+	    int hours = local->tm_hour;         
+	    int minutes = local->tm_min;        
+	    int seconds = local->tm_sec;        
+	 
+	    int day = local->tm_mday;            
+	    int month = local->tm_mon + 1;      
+	    int year = local->tm_year + 1900-2000;  
+		 
+        printf("Tiempo: %d:%d:%d\n", hours, minutes, seconds);
+        printf("Fecha: %d/%d/%d\n", day, month, year); 
+    
+		unsigned long int tiempoChar[5];
+		tiempoChar[0] = month;
+		tiempoChar[1] = day;
+		tiempoChar[2] = hours;
+		tiempoChar[3] = minutes;
+		tiempoChar[4] = seconds;
+		tiempo = (tiempoChar[0])*100000000+(tiempoChar[1])*1000000+(tiempoChar[2])*10000+(tiempoChar[3])*100+(tiempoChar[4]);
+		printf("Tiempo Int:%lu\n",tiempo);
+		printf("Presione 1 para enviar Fecha y Hora o 2 para enviar Clave");
+		scanf("%d",&opcion);
+		if(opcion == 1){
+			char lpBuffer[12];
+			sprintf(lpBuffer,"%d",2);
+			strcat(lpBuffer," ");
+			char tiempoChar[12];
+			sprintf(tiempoChar,"%lu",tiempo);
+			strcat(lpBuffer,tiempoChar);
+			int j = 0;
+			while(j<12){
+			printf("%c", lpBuffer[j]);
+			j++;	
+			}
+			DWORD  dNoOFBytestoWrite;              // No of bytes to write into the port
+			DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
+			
+			dNoOFBytestoWrite = sizeof(lpBuffer); // Calculating the no of bytes to write into the port
+			
+				
+			
+			Status = WriteFile(hComm,               // Handle to the Serialport
+							   lpBuffer,            // Data to be written to the port 
+							   dNoOFBytestoWrite,   // No of bytes to write into the port
+							   &dNoOfBytesWritten,  // No of bytes written to the port
+							   NULL);
+			
+			if (Status == TRUE)
+				printf("\n\n    %s - Written to %s", lpBuffer, ComPortName);
+			else
+				printf("\n\n   Error %d in Writing to Serial Port",GetLastError());
+		}
+		
+		if(opcion == 2){
+			char lpBuffer[11];
+			sprintf(lpBuffer,"%d",1);
+			strcat(lpBuffer, " ");
+			strcat(lpBuffer, clave);
+			int j = 0;
+			while(j<11){
+			printf("%c", lpBuffer[j]);
+			j++;	
+			}
+			char *claveChar = strtok(lpBuffer, " ");
+			claveChar = strtok(NULL, " ");
+			numClave = (int)strtol(claveChar, NULL, 0);
+			printf("\nClaveP:%08X\n", numClave);
+			DWORD  dNoOFBytestoWrite;              // No of bytes to write into the port
+			DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
+			
+			dNoOFBytestoWrite = sizeof(lpBuffer); // Calculating the no of bytes to write into the port
+			
+				
+			
+			Status = WriteFile(hComm,               // Handle to the Serialport
+							   lpBuffer,            // Data to be written to the port 
+							   dNoOFBytestoWrite,   // No of bytes to write into the port
+							   &dNoOfBytesWritten,  // No of bytes written to the port
+							   NULL);
+			
+			if (Status == TRUE)
+				printf("\n\n    %s - Written to %s", lpBuffer, ComPortName);
+			else
+				printf("\n\n   Error %d in Writing to Serial Port",GetLastError());
+		}
+		
+	
+		
+		
+		/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
+			
+			Status = SetCommMask(hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
+	
+			if (Status == FALSE)
+				printf("\n\n    Error! in Setting CommMask");
+			else
+				printf("\n\n    Setting CommMask successfull");
+
+			
+           /*------------------------------------ Setting WaitComm() Event   ----------------------------------------*/
+			
+			printf("\n\n    Waiting for Data Reception");
+
+			Status = WaitCommEvent(hComm, &dwEventMask, NULL); //Wait for the character to be received
+	
+			/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
+
+			if (Status == FALSE)
+				{
+					printf("\n    Error! in Setting WaitCommEvent()");
+				}
+			else //If  WaitCommEvent()==True Read the RXed data using ReadFile();
+				{
+					printf("\n\n    Characters Received");
+					do
+						{
+							Status = ReadFile(hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
+							SerialBuffer[i] = TempChar;
+							i++;
+					    }
+					while (NoBytesRead > 0);
+
+					
+
+					/*------------Printing the RXed String to Console----------------------*/
+
+					printf("\n\n    ");
+					int j =0;
+					for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
+						printf("%c", SerialBuffer[j]);
+		
+				}	
+		CloseHandle(hComm);//Closing the Serial Port
+		printf("\n ==========================================\n");
+		_getch();
+		if(t>=k+10){
+		k=k+10;	
+		}
+		unsigned long tokenLocal = tiempo^numClave;
+		printf("Token %08X \n", tokenLocal);	
+		printf("Ingrese su TOKEN>>>");
+		scanf("%08X",&input);
+		valor = input ^ numClave;
+		if(valor==tiempo){
+			printf("--------------Clave Aceptada------------------\n");
+		}
+		else{
+			printf("--------------Clave Rechazada--------------\n");	
+		}
+	}
+	}
