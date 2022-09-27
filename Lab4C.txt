@@ -1,236 +1,129 @@
-#include <Windows.h>
-	#include <stdio.h>
-	#include <string.h>
-	#include <sys/time.h>
-	void main(void)
-	{
+#include <stdio.h>
+#include <stdlib.h>
+#include<windows.h>
+#include <time.h>
+
+
+int main(int argc, char *argv[]) {
+	
+	DCB dcb;
+	int hora, minuto, segundo, mes, year, dia, nBytes,nBytes2,opcion=0;
+	unsigned long int input = 0,numClave=0,valor=0,tiempoInt=0;
+	long int nBytesMandados, lpEvtMask;
+	OVERLAPPED listo;
+	HANDLE hComm;
+	char dato[32]={'\0'}, respuesta[2];
+	
+	hComm=CreateFileA("\\\\.\\COM3",GENERIC_READ | GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);//abre el puerto
+	
+	if (hComm == INVALID_HANDLE_VALUE)
+      printf("Error in opening serial port\n");
+  else
+      printf("Opening serial port successful\n");
+      
+//================================================================================================
+	
+	GetCommState(hComm, &dcb);
+	printf("\nConfig por defecto: BaudRate = %d, ByteSize = %d, Paridad = %d, Bit de parada = %d\n", dcb.BaudRate, dcb.ByteSize, dcb.Parity,dcb.StopBits);
+	
+   BOOL fSuccess;
+   dcb.BaudRate = 9600;     //  baud rate
+   dcb.ByteSize = 8;             //  data size, xmit and rcv
+   dcb.Parity   = 0;      //  parity bit
+   dcb.StopBits = 0;
+   SetCommState(hComm, &dcb);
+   
+   fSuccess = SetCommState(hComm, &dcb);
+
+   if (!fSuccess) 
+   {
+      //  Handle the error.
+      printf ("SetCommState failed with error %d.\n", GetLastError());
+      return (3);
+   }
+   printf("\nConfig nueva: BaudRate = %d, ByteSize = %d, Paridad = %d, Bit de parada = %d\n", dcb.BaudRate, dcb.ByteSize, dcb.Parity,dcb.StopBits);
+
+//================================================================================================
+	char clave[] = "0xF103C86";
+//================================================================================================
+    while(1){
+    printf("Digite 1 para cambiar la clave, 2 para sincronizar relojes");
+	scanf("%d",&opcion);
+	if(opcion==1){
+		printf("Digite la clave nueva:");
+		scanf("%s",&clave);
+	opcion= 2;	
+	}
+	if(opcion==2){
+		time_t ya;
+		time(&ya);
+	
 		
-		HANDLE hComm;                          // Handle to the Serial port
-		char   ComPortName[] = "\\\\.\\COM6"; // Name of the Serial port(May Change) to be opened,
-		BOOL   Status;
-		DWORD dwEventMask;                     // Event mask to trigger
-			char  TempChar;                        // Temperory Character
-			char  SerialBuffer[256];               // Buffer Containing Rxed Data
-			DWORD NoBytesRead;                     // Bytes read by ReadFile()
-			int i = 0;
-			
-		printf("\n\n +==========================================+");
-		printf("\n |  Serial Transmission (Win32 API)         |");
-		printf("\n +==========================================+\n");
-		/*----------------------------------- Opening the Serial Port --------------------------------------------*/
-
-		hComm = CreateFile( ComPortName,                       // Name of the Port to be Opened
-							GENERIC_READ | GENERIC_WRITE,      // Read/Write Access
-							0,                                 // No Sharing, ports cant be shared
-							NULL,                              // No Security
-							OPEN_EXISTING,                     // Open existing port only
-							0,                                 // Non Overlapped I/O
-							NULL);                             // Null for Comm Devices
-
-		if (hComm == INVALID_HANDLE_VALUE)
-			printf("\n   Error! - Port %s can't be opened", ComPortName);
-		else 
-			printf("\n   Port %s Opened\n ", ComPortName);
-
-		
-		/*------------------------------- Setting the Parameters for the SerialPort ------------------------------*/
-
-		DCB dcbSerialParams = { 0 };                        // Initializing DCB structure
-		dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-		
-		Status = GetCommState(hComm, &dcbSerialParams);     //retreives  the current settings
-
-		if (Status == FALSE)
-			printf("\n   Error! in GetCommState()");
-
-		dcbSerialParams.BaudRate = CBR_9600;      // Setting BaudRate = 9600
-		dcbSerialParams.ByteSize = 8;             // Setting ByteSize = 8
-		dcbSerialParams.StopBits = ONESTOPBIT;    // Setting StopBits = 1
-		dcbSerialParams.Parity   = NOPARITY;      // Setting Parity = None 
-
-		Status = SetCommState(hComm, &dcbSerialParams);  //Configuring the port according to settings in DCB 
-
-		if (Status == FALSE)
-			{
-				printf("\n   Error! in Setting DCB Structure");
-			}
-		else
-			{
-				printf("\n   Setting DCB Structure Successfull\n");
-				printf("\n       Baudrate = %d", dcbSerialParams.BaudRate);
-				printf("\n       ByteSize = %d", dcbSerialParams.ByteSize);
-				printf("\n       StopBits = %d", dcbSerialParams.StopBits);
-				printf("\n       Parity   = %d", dcbSerialParams.Parity);
-			}
-		
-		/*------------------------------------ Setting Timeouts --------------------------------------------------*/
-		
-		COMMTIMEOUTS timeouts = { 0 };
-
-		timeouts.ReadIntervalTimeout         = 50;
-		timeouts.ReadTotalTimeoutConstant    = 50;
-		timeouts.ReadTotalTimeoutMultiplier  = 10;
-		timeouts.WriteTotalTimeoutConstant   = 50;
-		timeouts.WriteTotalTimeoutMultiplier = 10;
-
-		if (SetCommTimeouts(hComm, &timeouts) == FALSE)
-			printf("\n   Error! in Setting Time Outs");
-		else
-			printf("\n\n   Setting Serial Port Timeouts Successfull");
-		time_t k;
-		time(&k);
-		unsigned long int input = 0,numClave=0,valor=0,tiempo=0;
-		int opcion=0;
-		char in=0;
-		while(1){
-			
-		/*----------------------------- Writing a Character to Serial Port----------------------------------------*/
-		char clave[] = "0xF103C86";
-		numClave = (int)strtol(clave, NULL, 0);
-		printf("\nClaveP:%08X\n", numClave); 
-		time_t t;
-		time(&t);
-		 struct tm *local = localtime(&t);
- 
-	    int hours = local->tm_hour;         
-	    int minutes = local->tm_min;        
-	    int seconds = local->tm_sec;        
-	 
-	    int day = local->tm_mday;            
-	    int month = local->tm_mon + 1;      
-	    int year = local->tm_year + 1900-2000;  
-		 
-        printf("Tiempo: %d:%d:%d\n", hours, minutes, seconds);
-        printf("Fecha: %d/%d/%d\n", day, month, year); 
+	
+		struct tm *tiempo = localtime(&ya);
+		hora = tiempo->tm_hour;         // obtener horas desde la medianoche (0-23)
+	    minuto = tiempo->tm_min;        // obtener minutos pasados después de la hora (0-59)
+	    segundo = tiempo->tm_sec;        // obtener segundos pasados después de un minuto (0-59)
+	    dia = tiempo->tm_mday;           
+	    mes = tiempo->tm_mon + 1;     
+	    year = tiempo->tm_year + 1900-2000; 
+	    printf("La hora es: %02d:%02d:%02d ", hora, minuto, segundo);
+	     printf("La fecha: %d/%d/%d\n", dia, mes, year);
+	     
+	     unsigned long int tiempoString[3];
+		tiempoString[0] = hora;
+		tiempoString[1] = minuto;
+		tiempoString[2] = segundo;
+		tiempoInt = (tiempoString[0])*10000+(tiempoString[1])*100+(tiempoString[2]);
+		printf("Tiempo Int:%lu\n",tiempoInt);
+		char lpBuffer[8];
+		sprintf(lpBuffer,"%d",2);
+		strcat(lpBuffer," ");
+		char tiempoChar[6];
+		sprintf(tiempoChar,"%lu",tiempoInt);
+		strcat(lpBuffer,tiempoChar);
+		nBytes=sizeof(lpBuffer);
+		fSuccess = WriteFile(hComm,lpBuffer,nBytes,&nBytesMandados,NULL);
+		if(!fSuccess){
+    	printf("Hubo un error al enviar el dato");
+		}
+    	else{
+    		printf("Se enviaron %d Bytes",nBytesMandados);
+		}
     
-		unsigned long int tiempoChar[5];
-		tiempoChar[0] = month;
-		tiempoChar[1] = day;
-		tiempoChar[2] = hours;
-		tiempoChar[3] = minutes;
-		tiempoChar[4] = seconds;
-		tiempo = (tiempoChar[0])*100000000+(tiempoChar[1])*1000000+(tiempoChar[2])*10000+(tiempoChar[3])*100+(tiempoChar[4]);
-		printf("Tiempo Int:%lu\n",tiempo);
-		printf("Presione 1 para enviar Fecha y Hora o 2 para enviar Clave");
-		scanf("%d",&opcion);
-		if(opcion == 1){
-			char lpBuffer[12];
-			sprintf(lpBuffer,"%d",2);
-			strcat(lpBuffer," ");
-			char tiempoChar[12];
-			sprintf(tiempoChar,"%lu",tiempo);
-			strcat(lpBuffer,tiempoChar);
-			int j = 0;
-			while(j<12){
-			printf("%c", lpBuffer[j]);
-			j++;	
-			}
-			DWORD  dNoOFBytestoWrite;              // No of bytes to write into the port
-			DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
-			
-			dNoOFBytestoWrite = sizeof(lpBuffer); // Calculating the no of bytes to write into the port
-			
-				
-			
-			Status = WriteFile(hComm,               // Handle to the Serialport
-							   lpBuffer,            // Data to be written to the port 
-							   dNoOFBytestoWrite,   // No of bytes to write into the port
-							   &dNoOfBytesWritten,  // No of bytes written to the port
-							   NULL);
-			
-			if (Status == TRUE)
-				printf("\n\n    %s - Written to %s", lpBuffer, ComPortName);
-			else
-				printf("\n\n   Error %d in Writing to Serial Port",GetLastError());
+	    SetCommMask(hComm,EV_RXCHAR);
+	    fSuccess = WaitCommEvent(hComm, &lpEvtMask, NULL);
+	    if (fSuccess==TRUE){
+			ReadFile(hComm,respuesta,2,&nBytesMandados,NULL);
+			printf("\nRecibido un: %c%c\n",respuesta[0],respuesta[1]);
 		}
 		
-		if(opcion == 2){
-			char lpBuffer[11];
-			sprintf(lpBuffer,"%d",1);
-			strcat(lpBuffer, " ");
-			strcat(lpBuffer, clave);
-			int j = 0;
-			while(j<11){
-			printf("%c", lpBuffer[j]);
-			j++;	
-			}
-			char *claveChar = strtok(lpBuffer, " ");
+		char lpBuffer2[10];
+		sprintf(lpBuffer2,"%d",1);
+		strcat(lpBuffer2, " ");
+		strcat(lpBuffer2, clave);
+			char *claveChar = strtok(lpBuffer2, " ");
 			claveChar = strtok(NULL, " ");
 			numClave = (int)strtol(claveChar, NULL, 0);
-			printf("\nClaveP:%08X\n", numClave);
-			DWORD  dNoOFBytestoWrite;              // No of bytes to write into the port
-			DWORD  dNoOfBytesWritten = 0;          // No of bytes written to the port
+			printf("\nClave:%08X\n", numClave);
+			unsigned long int token = numClave^tiempoInt;
+			printf("\nToken:%08X\n", token);
 			
-			dNoOFBytestoWrite = sizeof(lpBuffer); // Calculating the no of bytes to write into the port
-			
-				
-			
-			Status = WriteFile(hComm,               // Handle to the Serialport
-							   lpBuffer,            // Data to be written to the port 
-							   dNoOFBytestoWrite,   // No of bytes to write into the port
-							   &dNoOfBytesWritten,  // No of bytes written to the port
-							   NULL);
-			
-			if (Status == TRUE)
-				printf("\n\n    %s - Written to %s", lpBuffer, ComPortName);
-			else
-				printf("\n\n   Error %d in Writing to Serial Port",GetLastError());
+			nBytes2=sizeof(lpBuffer2);
+		fSuccess = WriteFile(hComm,lpBuffer2,nBytes2,&nBytesMandados,NULL);
+		if(!fSuccess){
+    	printf("Hubo un error al enviar el dato");
 		}
-		
-	
-		
-		
-		/*------------------------------------ Setting Receive Mask ----------------------------------------------*/
-			
-			Status = SetCommMask(hComm, EV_RXCHAR); //Configure Windows to Monitor the serial device for Character Reception
-	
-			if (Status == FALSE)
-				printf("\n\n    Error! in Setting CommMask");
-			else
-				printf("\n\n    Setting CommMask successfull");
-
-			
-           /*------------------------------------ Setting WaitComm() Event   ----------------------------------------*/
-			
-			printf("\n\n    Waiting for Data Reception");
-
-			Status = WaitCommEvent(hComm, &dwEventMask, NULL); //Wait for the character to be received
-	
-			/*-------------------------- Program will Wait here till a Character is received ------------------------*/				
-
-			if (Status == FALSE)
-				{
-					printf("\n    Error! in Setting WaitCommEvent()");
-				}
-			else //If  WaitCommEvent()==True Read the RXed data using ReadFile();
-				{
-					printf("\n\n    Characters Received");
-					do
-						{
-							Status = ReadFile(hComm, &TempChar, sizeof(TempChar), &NoBytesRead, NULL);
-							SerialBuffer[i] = TempChar;
-							i++;
-					    }
-					while (NoBytesRead > 0);
-
-					
-
-					/*------------Printing the RXed String to Console----------------------*/
-
-					printf("\n\n    ");
-					int j =0;
-					for (j = 0; j < i-1; j++)		// j < i-1 to remove the dupliated last character
-						printf("%c", SerialBuffer[j]);
-		
-				}	
-		CloseHandle(hComm);//Closing the Serial Port
-		printf("\n ==========================================\n");
-		_getch();
-		if(t>=k+10){
-		k=k+10;	
+    	else{
+    		printf("Se enviaron %d Bytes",nBytesMandados);
 		}
-		unsigned long tokenLocal = tiempo^numClave;
-		printf("Token %08X \n", tokenLocal);	
+    
+	    SetCommMask(hComm,EV_RXCHAR);
+	    fSuccess = WaitCommEvent(hComm, &lpEvtMask, NULL);
+		 if (fSuccess==TRUE){
+			ReadFile(hComm,respuesta,2,&nBytesMandados,NULL);
+			printf("\nRecibido un: %c%c\n",respuesta[0],respuesta[1]);
+		}
 		printf("Ingrese su TOKEN>>>");
 		scanf("%08X",&input);
 		valor = input ^ numClave;
@@ -238,7 +131,39 @@
 			printf("--------------Clave Aceptada------------------\n");
 		}
 		else{
-			printf("--------------Clave Rechazada--------------\n");	
-		}
+			printf("--------------Clave Rechazada--------------\n");
+		} 
+		opcion=3	
 	}
+	if(opcion==3){
+		time_t k;
+		time(&k);
+		if(k>=ya+10){
+			k=k+10;
+			opcion = 2;
+}
+}
+		
 	}
+    
+//================================================================================================
+    
+   
+    
+    
+    
+    
+//================================================================================================
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    printf("\nTermina el programa");
+    CloseHandle(hComm);//cerrar el puerto
+	return 0;
+}
