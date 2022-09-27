@@ -27,7 +27,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define F_CLK  72000000UL
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -43,11 +43,13 @@
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
-char respuesta[2]={'O','K'};
-char mensajeT[20];
-char mensajeC[20];
+volatile uint8_t mensaje[32]={'\0'}, valida=0;//valida me ayuda a enviar el ok confirmando un estado
+uint8_t respuesta[2]={'O','K'};
 char mensajeTk[20];
-unsigned long clave = 0, tiempo=0;
+char claveC[] = "0xF103C86";
+
+volatile unsigned long clave = 0, tiempo=0;
+unsigned long token=0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,28 +97,24 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
   initLCD();
-  LCD("Listo para recibir");
-  HAL_Delay(1000);
-  comando(0x01);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  clave = (int)strtol(claveC, NULL, 0);
   while (1)
   {
 	  comando(0x01);
-	  sprintf(mensajeT,"%lu",tiempo);
-	  LCD(mensajeT);
-	  HAL_Delay(1000);
+	    token=tiempo^clave;
+	    sprintf(mensajeTk,"%lu",token);
+	    LCD(mensajeTk);
+	    HAL_Delay(2000);
+	  if(valida==1){
+		  resp();
+	  }
+	  	  HAL_Delay(1000);
 	  comando(0x01);
-	  	  sprintf(mensajeC,"%08X",clave);
-	  	  LCD(mensajeC);
-	  	HAL_Delay(1000);
-	  	comando(0x01);
-	  unsigned long int token=tiempo^clave;
-	  	sprintf(mensajeTk,"%08X",token);
-	  	LCD(mensajeTk);
-	  	HAL_Delay(1000);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -192,7 +190,7 @@ static void MX_TIM2_Init(void)
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 2000-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
   {
     Error_Handler();
@@ -244,7 +242,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
 void comando (unsigned char cmd){
 	unsigned char t1,t2,i;
 	HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,0);
@@ -359,37 +356,43 @@ void initLCD(){
 	comando(0x80);
 
 }
-
-void num(unsigned int n){
-		dato(n+48);
-
-}
 void LCD(char *frase){
 	unsigned char cont=0;
 	while(frase[cont] != 0){
 		dato(frase[cont++]);
 	}
 }
-void CDC_Receive_Callback(uint8_t *buf, uint32_t len)
-{
-	if((buf[o]-48)==1){
-		char *claveChar = strtok(lpBuffer, " ");
+void cursor(char fil, char col){//ubica el cursor
+	if(fil==0)
+		{
+			col|=0x80;
+		}
+		else
+		{
+			col|=0xC0;
+		}
+	comando(col);
+}
+void llegaUSB(uint8_t *buf, uint32_t len){
+	if((buf[0]-48)==1){
+		char *claveChar = strtok(buf, " ");
 		claveChar = strtok(NULL, " ");
 		clave = (int)strtol(claveChar, NULL, 0);
 	}
-	if((buf[o]-48)==2){
-		char *tiempoChar= strtok(lpBuffer, " ");
-		tiempoChar = strtok(NULL, " ");
-		tiempo=atol(tiempoChar);
-	}
+	valida=1;
+	//if((buf[0]-48)==2){
+		//char *tiempoChar= strtok(buf, " ");
+		//tiempoChar = strtok(NULL, " ");
+		//tiempo=atol(tiempoChar);
+		//valida=1;
+	//}
 	HAL_GPIO_TogglePin(GPIOB,GPIO_PIN_2);
-	CDC_Transmit_FS(respuesta,2);
 }
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
-{
-LCD("10 segundos");
-HAL_Delay(1000);
-comando(0x01);
+void resp(){
+	do{
+		CDC_Transmit_FS(respuesta,strlen(respuesta));
+		valida=0;
+	}while(valida==1);
 }
 /* USER CODE END 4 */
 
