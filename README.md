@@ -7,8 +7,7 @@ The project integrates embedded control, analog sensing, and a graphical desktop
 ![LineFollowingRobot](https://github.com/user-attachments/assets/b5fae4a5-53b8-4ba4-b195-d37fce326963)
 
 
-
-https://github.com/user-attachments/assets/9db59973-5611-4065-9fe1-802ef03e5322
+https://github.com/user-attachments/assets/ee35b2c7-56f8-4ede-a9de-c44f287b4ea8
 
 
 ---
