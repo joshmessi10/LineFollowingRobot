@@ -1,77 +1,82 @@
-# 🤖 Robot Seguidor de Línea
+# 🤖 Line-Following Robot
 
-Este repositorio documenta el desarrollo de un robot seguidor de línea basado en un microcontrolador STM32. 
+This repository documents the development of a line-following robot based on an STM32 microcontroller.
 
-El proyecto integra control embebido, sensado analógico y una interfaz gráfica auxiliar para la calibración y monitoreo de sensores.
-
----
-
-## 🎯 Objetivo del Proyecto
-
-Implementar un sistema autónomo capaz de seguir una línea negra sobre fondo blanco utilizando sensores reflectivos y un algoritmo de control embebido. El enfoque incluye una etapa de calibración asistida mediante una interfaz de escritorio desarrollada con Qt, que permite verificar el funcionamiento del sistema de sensado y la estabilidad del voltaje de alimentación.
+The project integrates embedded control, analog sensing, and a graphical desktop interface for sensor calibration and monitoring.
 
 ---
 
-## ⚙️ Componentes del Sistema
+## 🎯 Project Objective
 
-### 🧩 Firmware STM32 (Embebido)
-- **Lectura de sensores reflectivos** (ADC)
-- **Calibración de máximos y mínimos** para cada sensor
-- **Cálculo del error de línea y lógica de control**
-- **Control de motores vía PWM**
-- **Protocolo de comunicación serial estructurado**
-- **Transmisión periódica de datos a la PC**
+To implement an autonomous system capable of following a black line on a white background using reflective sensors and an embedded control algorithm. The approach includes a calibration phase assisted by a desktop interface built with Qt, which allows users to verify sensor functionality and power supply stability.
 
-### 🖥️ Aplicación Qt (Visualización)
-- Detección y conexión automática a puertos seriales
-- Lectura en tiempo real de valores de sensores
-- Visualización de valores máximos y mínimos detectados
-- Indicadores gráficos de intensidad de señal
-- Monitoreo de voltaje del sistema
+---
 
+## ⚙️ System Components
 
+### 🧩 STM32 Firmware (Embedded)
+- **Reading reflective sensors** via ADC
+- **Calibration of maximum and minimum values** for each sensor
+- **Line error calculation and control logic**
+- **Motor control using PWM signals**
+- **Structured serial communication protocol**
+- **Periodic transmission of data to the PC**
 
-## 🔄 Protocolo de Comunicación
+### 🖥️ Qt Application (Visualization)
+- Automatic detection and connection to serial ports
+- Real-time reading of sensor values
+- Display of detected minimum and maximum values
+- Graphical indicators of signal intensity
+- Monitoring of system voltage
 
-La comunicación entre el microcontrolador y la PC se realiza mediante una estructura de paquetes con delimitadores, tamaño, datos y verificación por checksum.
+---
 
-Estructura del paquete (bytes):
+## 🔄 Communication Protocol
+
+Communication between the microcontroller and the PC is handled through a structured packet format including delimiters, size, data, and checksum verification.
+
+Packet structure (bytes):
 
 ```
-[INICIO][TAMAÑO][DATOS][CHECKSUM][FIN]
+[START][SIZE][DATA][CHECKSUM][END]
 ```
 
-Tipos de datos enviados:
-- Calibración de sensores
-- Lecturas en tiempo real
-- Nivel de voltaje del sistema
-- Tipo de mensaje identificable en campo de control
+Types of data transmitted:
+- Sensor calibration values
+- Real-time sensor readings
+- System voltage level
+- Message type identified via control field
 
 ---
 
-## 📈 Aplicaciones y Escenarios
+## 📈 Applications and Use Cases
 
-- Educación en robótica móvil y sistemas embebidos
-- Prototipos de vehículos autónomos básicos
-- Pruebas de algoritmos de control (P, PD, PID)
+- Education in mobile robotics and embedded systems
+- Prototyping of basic autonomous vehicles
+- Testing of control algorithms (P, PD, PID)
 
-## 📎 Requisitos
+---
 
-- Placa con microcontrolador STM32 (serie F401 o similar)
-- Módulo de sensores reflectivos
-- Driver de motores y motoreductores
-- Fuente de alimentación estable
+## 📎 Requirements
 
-## 🔧 Posibles Extensiones
+- STM32 microcontroller board (e.g., F401 series or similar)
+- Reflective sensor module
+- Motor driver and geared motors
+- Stable power supply
 
-- Incorporación de control PID para suavizar trayectorias
-- Grabación de sesiones de sensores en CSV
-- Visualización en tiempo real mediante gráficas
-- Transmisión inalámbrica de datos (Bluetooth, WiFi)
-- Implementación de lógica para curvas o intersecciones
+---
 
-# Créditos
+## 🔧 Potential Extensions
 
-Josh Sebastián López Murcia
+- Integration of PID control for smoother trajectories
+- Sensor session recording in CSV format
+- Real-time visualization with plots or graphs
+- Wireless data transmission (Bluetooth, WiFi)
+- Logic for handling curves or intersections
 
+---
+
+## 👥 Credits
+
+Josh Sebastián López Murcia  
 Julián Humberto Lozada Silva
