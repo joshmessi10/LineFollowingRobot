@@ -28,6 +28,7 @@ To implement an autonomous system capable of following a black line on a white b
 - **Structured serial communication protocol**
 - **Periodic transmission of data to the PC**
 
+
 ### 🖥️ Qt Application (Visualization)
 - Automatic detection and connection to serial ports
 - Real-time reading of sensor values
@@ -82,11 +83,19 @@ Types of data transmitted:
 
 ---
 
+## 📸 Images
+
+![Pista](https://github.com/user-attachments/assets/257ab0f4-8b12-42e9-88e3-3d6d33177fdf)
+
+![QT](https://github.com/user-attachments/assets/60385e9d-0683-48dc-a6b8-d2aeff63641f)
+
+---
+
 ## 👥 Credits
 
 Josh Sebastián López Murcia  
 Julián Humberto Lozada Silva
 
-![Pista](https://github.com/user-attachments/assets/257ab0f4-8b12-42e9-88e3-3d6d33177fdf)
+
 
 
