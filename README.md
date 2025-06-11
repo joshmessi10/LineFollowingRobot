@@ -4,6 +4,13 @@ This repository documents the development of a line-following robot based on an 
 
 The project integrates embedded control, analog sensing, and a graphical desktop interface for sensor calibration and monitoring.
 
+![LineFollowingRobot](https://github.com/user-attachments/assets/b5fae4a5-53b8-4ba4-b195-d37fce326963)
+
+
+
+https://github.com/user-attachments/assets/9db59973-5611-4065-9fe1-802ef03e5322
+
+
 ---
 
 ## 🎯 Project Objective
@@ -80,3 +87,7 @@ Types of data transmitted:
 
 Josh Sebastián López Murcia  
 Julián Humberto Lozada Silva
+
+![Pista](https://github.com/user-attachments/assets/257ab0f4-8b12-42e9-88e3-3d6d33177fdf)
+
+
